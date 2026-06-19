@@ -25,9 +25,11 @@ Change directory to `ros-dev` and:
 
 ```bash
 docker build \
-    -f docker/Dockerfile \
-    -t ros-rolling-dev \
-    .
+  --no-cache \
+  --platform linux/amd64 \
+  -f docker/Dockerfile \
+  -t ros-rolling-dev \
+  .
 ```
 
 # 3. Run a Docker container from the image
@@ -36,25 +38,53 @@ Change directory to `ros-dev` and:
 
 ```bash
 docker run \
-    -it \
-    --rm \
-    --privileged \
-    --network=host \
-    -v ${PWD}:/root/ros-dev \
-    -w /root/ros-dev \
-    --name ros-dev-container \
-    ros-rolling-dev \
-    bash
+  --platform linux/amd64 \
+  -it \
+  --rm \
+  --privileged \
+  --network=host \
+  -v ${PWD}:/root/ros-dev \
+  -w /root/ros-dev \
+  --name ros-dev-container \
+  ros-rolling-dev \
+  bash
 ```
 
-# Build rclcpp inside the container
+# Build rcl and rclcpp inside the container
+
+Two helper scripts under `scripts/` build `rcl` + `rclcpp`. Both create the
+`ros2_ws/src/{rcl,rclcpp}` symlinks into `repos/` automatically and cap build
+parallelism so the heavy C++ compiles fit in the Docker VM's RAM.
+
+Run a **full, from-scratch build** the first time (it wipes previous artifacts,
+refreshes dependencies with `rosdep`, and rebuilds everything):
 
 ```bash
-ln -s /root/ros-dev/rclcpp/ /root/ros-dev/ros2_ws/src/rclcpp
-cd /root/ros-dev/ros2_ws
-apt-get update && apt-get upgrade
-rosdep install --from-paths src -y --ignore-src
-colcon build
-colcon test
-source install/local_setup.bash
+bash scripts/clean_build.sh
 ```
+
+For day-to-day work, use the **fast incremental build** (rebuilds only what
+changed):
+
+```bash
+bash scripts/build.sh
+```
+
+Re-run `clean_build.sh` after changing dependencies or whenever the workspace
+gets into a bad state.
+
+## Notes
+
+- The Docker image upgrades the base image's ROS packages to the current rolling
+  release (`apt dist-upgrade`). The base image is a snapshot whose ROS packages
+  lag behind the `rcl`/`rclcpp` sources; without the upgrade, the generated
+  interface targets don't match and the build fails (e.g. `find_package`
+  succeeds but the `rcl_interfaces::rcl_interfaces` target is missing).
+- The image also bakes in the test/benchmark dependencies that the desktop-full
+  image omits and that `rosdep` cannot resolve on Ubuntu 24.04 (`test_msgs`,
+  `mimick_vendor`, `osrf_testing_tools_cpp`, `performance_test_fixture`,
+  `ament_cmake_google_benchmark`), plus `rcl_logging_implementation`, which
+  `rcl` needs for its default dynamic logging backend.
+- The builds run with `--parallel-workers 1` and `MAKEFLAGS=-j2` to stay within
+  ~4 GB of RAM. If you give Docker more memory, speed them up with e.g.
+  `COLCON_PARALLEL_WORKERS=4 MAKEFLAGS="-j8" bash scripts/build.sh`.

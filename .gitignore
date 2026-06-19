@@ -1,7 +1,11 @@
 # Forked&Cloned repos
 rclcpp/
+rcl/
 
 # Build-related folders
 build/
 install/
 log/
+.cache/
+.claude/
+compile_commands.json

@@ -1,0 +1,32 @@
+{
+    "name": "RosRollingDev",
+    "image": "ros-rolling-dev:latest",
+    "privileged": true,
+    "runArgs": [
+        "--rm",
+        "--network=host",
+        "--ipc=host"
+    ],
+    "remoteUser": "root",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/root/ros-dev,type=bind",
+    "workspaceFolder": "/root/ros-dev",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "usernamehw.errorlens",
+                "vadimcn.vscode-lldb",
+                "ms-vscode.cmake-tools"
+            ],
+            "settings": {
+                "clangd.path": "/usr/bin/clangd",
+                "clangd.arguments": [
+                    "--fallback-style=none",
+                    "--background-index",
+                    "--query-driver=/usr/bin/g++",
+                    "--header-insertion=never"
+                ]
+            }
+        }
+    }
+}
