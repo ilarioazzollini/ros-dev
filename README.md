@@ -6,7 +6,7 @@ you care about into a colcon workspace, and build and test them inside Docker.
 
 For a worked, end-to-end example of using this environment to contribute to ROS 2,
 see the blog post:
-[Contributing to ROS 2](https://ilarioazzollini.github.io/2026-06-13-contributing-to-ros-2/).
+[Contributing to the ROS 2 Project](https://ilarioazzollini.github.io/2026-06-13-contributing-to-ros-2/).
 
 *Prerequisites*:
 - Host PC with Ubuntu 24.04 (although it is *not necessary*)
@@ -14,9 +14,33 @@ see the blog post:
 - Install [docker](https://docs.docker.com/engine/install/ubuntu/) and also follow the [post-installation steps](https://docs.docker.com/engine/install/linux-postinstall/)
 - Install [Visual Studio Code](https://code.visualstudio.com/docs/setup/linux) (*not necessary*)
 
-# 1. Fork and clone the ROS 2 repo(s)
+# 1. Fork and clone this repo
 
-Fork the repository (or repositories) you want to work on on GitHub (uncheck the
+Fork this repository using your github account, then open a terminal, navigate to your favorite folder and clone it:
+
+```bash
+git clone git@github.com:<your-username>/ros-dev.git
+```
+
+## [Optional] Working with VS Code
+
+If you work with VS code, open a terminal and install the recommended extensions for setting up a complete development environment:
+
+```bash
+code --force --install-extension ms-azuretools.vscode-containers
+code --force --install-extension ms-vscode-remote.remote-containers
+```
+
+Then, you can navigate to the ros-dev folder, and open VS code from there:
+
+```bash
+cd <ros-dev>
+code .
+```
+
+# 2. Fork and clone the ROS 2 repo(s)
+
+Fork the ROS 2 repository (or repositories) you want to work on on GitHub (uncheck the
 "copy the rolling branch only" checkbox if you may want to backport to other ROS 2
 versions), then clone each one into `repos/`:
 
@@ -24,7 +48,7 @@ versions), then clone each one into `repos/`:
 git clone git@github.com:<your-username>/<repo>.git repos/<repo>
 ```
 
-# 2. Build the Docker image
+# 3. Build the Docker image
 
 Change directory to `ros-dev` and:
 
@@ -37,7 +61,27 @@ docker build \
   .
 ```
 
-# 3. Run a Docker container from the image
+# 4. Run a Docker container from the image
+
+## [Optional] Working with VS Code
+
+If you work with VS code, and have already opened the `ros-dev` folder with VS Code, open the Command Palette (`Ctrl+Shift+P`, or `Cmd+Shift+P` on Mac OS), type
+
+```
+Dev Containers: Reopen in Container
+```
+
+and select it.
+
+VS Code will close the current window, start a `ros-rolling-dev:latest` Docker container, and reopen the project inside the container. During this process, VS Code will also install the extensions defined in the file [`ros-dev/.devcontainer/devcontainer.json`](/.devcontainer/devcontainer.json).
+
+Any terminal opened from this VS Code instance will automatically run inside the container.
+
+> If you modify the Docker image and rebuild it, remember to also rebuild the Dev Container. In that case, use `Dev Containers: Rebuild Without Cache and Reopen in Container` from the Command Palette.
+
+
+
+## Working without an IDE
 
 Change directory to `ros-dev` and:
 
@@ -55,7 +99,7 @@ docker run \
   bash
 ```
 
-# 4. Set up the workspace
+# 5. Set up the ROS 2 workspace
 
 The build/test scripts operate on `ros2_ws/`, a colcon workspace. Link the repos
 you want to build into `ros2_ws/src/` (everything under `src/` is built and
@@ -69,7 +113,7 @@ Link only the repos relevant to your current work. To switch focus later, remove
 the symlinks you no longer need and add the ones you do — the rest of your cloned
 repos can stay in `repos/` untouched.
 
-# 5. Build and test inside the container
+# 6. Build and test inside the container
 
 The scripts under `scripts/` build (and optionally test) whatever is linked into
 `ros2_ws/src/`. They cap build parallelism so the heavy C++ compiles fit in the
