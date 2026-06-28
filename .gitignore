@@ -1,6 +1,7 @@
 # Forked&Cloned repos
 repos/rclcpp/
 repos/rcl/
+repos/ros2_documentation/
 
 # Build-related folders
 build/
