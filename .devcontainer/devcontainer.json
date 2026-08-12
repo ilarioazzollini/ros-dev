@@ -24,7 +24,16 @@
                     "--fallback-style=none",
                     "--background-index",
                     "--query-driver=/usr/bin/g++",
-                    "--header-insertion=never"
+                    "--header-insertion=never",
+                    // scripts/build.sh and scripts/clean_build.sh merge every
+                    // linked package's per-package compile_commands.json
+                    // (colcon writes one per package) into this single file
+                    // via scripts/merge_compile_commands.sh, so clangd sees
+                    // the whole workspace. Explicit rather than relying on
+                    // clangd's upward directory search: build/ is a sibling
+                    // of src/, not an ancestor of the source files under it,
+                    // so the search would otherwise miss it.
+                    "--compile-commands-dir=${workspaceFolder}/ros2_ws/build"
                 ]
             }
         }

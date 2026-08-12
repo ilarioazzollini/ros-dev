@@ -8,6 +8,8 @@
 # want to work on into ros2_ws/src/ yourself first (see README.md).
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 cd /root/ros-dev/ros2_ws
 
 # Cap build parallelism so heavy C++ compiles fit in the Docker VM's RAM
@@ -34,4 +36,5 @@ colcon build \
     --cmake-args \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+source "${SCRIPT_DIR}/merge_compile_commands.sh"
 source install/local_setup.bash

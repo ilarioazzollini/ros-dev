@@ -29,12 +29,14 @@ ENV LANG=en_US.UTF-8
 RUN apt-get update && apt-get dist-upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install other packages
+# clangd for editor IntelliSense/autocompletion (see .devcontainer/devcontainer.json's
+# clangd.* settings). Deliberately NOT installing clang-format/clang-tidy/lldb here:
+# style/lint enforcement comes from whatever each linked repo's package.xml
+# test_depends pull in via rosdep (ament_lint_common, resolved per repo - different
+# repos may want different tools), and debugging goes through vscode-lldb, which
+# bundles its own LLDB rather than using the system package.
 RUN apt-get update && apt-get install -q -y \
-    clang-format \
-    clang-tidy \
     clangd \
-    lldb \
     && rm -rf /var/lib/apt/lists/*
 
 # Build/runtime dependency of rcl that is not shipped with the desktop-full
