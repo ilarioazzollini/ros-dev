@@ -10,3 +10,10 @@ log/
 .cache/
 .claude/
 compile_commands.json
+
+# Extra or temp markdown files
+CLAUDE.md
+contributing.md
+next_steps.md
+work/
+docs/README.md
