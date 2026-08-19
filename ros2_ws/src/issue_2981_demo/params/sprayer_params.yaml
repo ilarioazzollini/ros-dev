@@ -1,0 +1,10 @@
+# Canonical, hand-written params file in the standard `ros2 param dump` /
+# `--params-file` format.
+/sprayer:
+  ros__parameters:
+    enabled: true
+    nozzle_pressure_bar: 2.5
+    spray_pattern: "no"
+    active_zones: ["zone_a", "zone_b", "zone_c"]
+    max_speed_mps: 1.8
+    pass_count: 3

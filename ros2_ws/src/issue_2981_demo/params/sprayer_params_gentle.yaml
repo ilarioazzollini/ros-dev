@@ -1,0 +1,11 @@
+# A second, alternate "system configuration" for the same node -- same
+# format, same node FQN, different values -- used to demonstrate switching
+# between preconfigured parameter sets *at runtime*, not just at startup.
+/sprayer:
+  ros__parameters:
+    enabled: true
+    nozzle_pressure_bar: 1.2
+    spray_pattern: "mist"
+    active_zones: ["zone_a"]
+    max_speed_mps: 0.9
+    pass_count: 1

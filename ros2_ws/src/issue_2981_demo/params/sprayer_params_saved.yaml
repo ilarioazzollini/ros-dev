@@ -1,0 +1,18 @@
+/sprayer:
+  ros__parameters:
+    active_zones:
+    - 'zone_a'
+    - 'zone_b'
+    - 'zone_c'
+    enabled: true
+    max_speed_mps: 1.8
+    nozzle_pressure_bar: 2.5
+    pass_count: 3
+    qos_overrides./parameter_events.publisher.depth: 1000
+    qos_overrides./parameter_events.publisher.durability: 'volatile'
+    qos_overrides./parameter_events.publisher.history: 'keep_last'
+    qos_overrides./parameter_events.publisher.reliability: 'reliable'
+    save_path: '/root/ros-dev/ros2_ws/src/issue_2981_demo/params/sprayer_params_saved.yaml'
+    spray_pattern: 'no'
+    start_type_description_service: true
+    use_sim_time: false

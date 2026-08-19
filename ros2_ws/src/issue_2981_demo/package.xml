@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>issue_2981_demo</name>
+  <version>0.0.1</version>
+  <description>
+    Before/after capability demo for ros2/rclcpp#2981 (save/dump/load node
+    parameters to/from file). Shows what already works today (loading a
+    params YAML file back into a process) and what does not (serializing a
+    node's live parameters back out to YAML) -- to motivate and illustrate
+    the feature before it exists.
+  </description>
+  <maintainer email="ilario.azzollini92@gmail.com">Ilario Azzollini</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
