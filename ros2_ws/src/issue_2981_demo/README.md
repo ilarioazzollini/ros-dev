@@ -2,9 +2,35 @@
 
 Before/after capability demos for [ros2/rclcpp#2981](https://github.com/ros2/rclcpp/issues/2981) ("Save / Dump / Load parameters to/from file"). Shows, with real code you can build and run, what already works today and what doesn't.
 
-Before running the demos, be sure to build them and source:
+In order to run all of these demos, follow these steps:
+
+Clone my forks of `rcl` and `rclcpp` and switch to the relevant branch. For `rclcpp`:
+
 ```bash
-bash -e /root/ros-dev/scripts/build.sh
+cd ros-dev/repos/
+git clone git@github.com:ilarioazzollini/rclcpp.git
+cd rclcpp
+git checkout ilo/rclcpp-issue-2981
+```
+
+And for `rcl`:
+```bash
+cd ros-dev/repos/
+git clone git@github.com:ilarioazzollini/rcl.git
+cd rcl
+git checkout ilo/rclcpp-issue-2981
+```
+
+Link the repos in the workspace:
+```bash
+ln -s /root/ros-dev/repos/rcl /root/ros-dev/ros2_ws/src/rcl
+
+ln -s /root/ros-dev/repos/rclcpp /root/ros-dev/ros2_ws/src/rclcpp
+```
+
+Build and source the whole workspace:
+```bash
+bash /root/ros-dev/scripts/clean_build_test.sh
 source /root/ros-dev/ros2_ws/install/setup.bash
 ```
 
