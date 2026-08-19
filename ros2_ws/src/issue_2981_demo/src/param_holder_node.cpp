@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
     node->get_logger(),
     "sprayer node up as '%s'. In another terminal try:\n"
     "  ros2 param dump %s\n"
-    "  ros2 param load %s install/issue_2981_demo/share/issue_2981_demo/"
+    "  ros2 param load %s /root/ros-dev/ros2_ws/src/issue_2981_demo/"
     "params/sprayer_params_gentle.yaml   # switch config live, already works\n"
     "  ros2 param dump %s                # confirm it switched",
     node->get_fully_qualified_name(), node->get_fully_qualified_name(),

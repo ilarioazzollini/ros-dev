@@ -138,6 +138,15 @@ ros2 run issue_2981_demo load_demo /root/ros-dev/ros2_ws/src/issue_2981_demo/par
 
 and see that `spray_pattern` comes back as the string `"no"`, exactly as it started. That's the concrete problem this feature solves: a plain, unquoted `no` is a valid YAML boolean literal, so a serializer that isn't a real YAML emitter -- one built by hand from `get_parameters()` / `Parameter::value_to_string()`, say -- would silently turn it into `false` instead. `rclcpp::serialize_parameters()` goes through the same YAML library (`libyaml`, via `rcl_yaml_param_parser`) the parser already uses, so it quotes correctly.
 
+> Note: `rclcpp::serialize_parameters()` dumps **all** of the node's declared
+> parameters, not just the six we set here. The saved file therefore also
+> contains the parameters every node auto-declares (`use_sim_time`,
+> `qos_overrides.*`, `start_type_description_service`) plus this demo's own
+> `save_path` control parameter. This matches what `ros2 param dump` emits
+> today, so it round-trips fine, but whether the API should offer a way to
+> filter (e.g. skip the automatically-declared ones, or take an explicit name
+> list) is an open design question for #2981 -- see the effort's `progress.md`.
+
 ## Summary
 
 Before 2981, this package shows that **loading** parameters at runtime already had several ways to do it: the `ros2 param load` CLI (`param_holder_node`), the same thing from C++ code against another node (`switch_config_demo`), and a node reloading its own parameters with no ROS graph involved at all (`self_reload_demo`). What was missing was the mirror image: **saving** a node's live parameters back to a YAML file, correctly, from in-process code. `ros2 param dump` covers it externally, but there was no `rclcpp`/`rcl` call for it, and hand-rolling one is not YAML-safe -- an unquoted string like `"no"` silently becomes the boolean `false`.

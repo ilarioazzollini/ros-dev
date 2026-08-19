@@ -1,3 +1,4 @@
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -42,15 +43,32 @@ int main(int argc, char ** argv)
 
   rclcpp::spin(node);
 
-  const auto yaml = rclcpp::serialize_parameters(
-    node->get_node_parameters_interface(), node->get_node_base_interface());
+  std::string yaml;
+  try {
+    yaml = rclcpp::serialize_parameters(
+      node->get_node_parameters_interface(), node->get_node_base_interface());
+  } catch (const std::exception & e) {
+    std::cerr << "\nrclcpp::serialize_parameters() failed: " << e.what() << "\n";
+    rclcpp::shutdown();
+    return 1;
+  }
   std::cout << "\n--- serialized by rclcpp::serialize_parameters() "
     "(not hand-rolled) ---\n" << yaml;
 
   std::string path;
   node->get_parameter(kSavePathParam, path);
   std::ofstream file(path);
+  if (!file) {
+    std::cerr << "\ncould not open " << path << " for writing\n";
+    rclcpp::shutdown();
+    return 1;
+  }
   file << yaml;
+  if (!file) {
+    std::cerr << "\nfailed while writing to " << path << "\n";
+    rclcpp::shutdown();
+    return 1;
+  }
   std::cout << "\nwritten to " << path <<
     " -- reload it with load_demo to see spray_pattern round-trip "
     "correctly as the string \"no\".\n";

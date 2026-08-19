@@ -33,7 +33,8 @@ int main(int argc, char ** argv)
 
   // Same node identity and starting values as param_holder_node's
   // SprayerNode -- deliberately, so the "before" values printed below match
-  // ../params/sprayer_params.yaml, same as every other demo in this package.
+  // /root/ros-dev/ros2_ws/src/issue_2981_demo/params/sprayer_params.yaml, same
+  // as every other demo in this package.
   auto node = std::make_shared<rclcpp::Node>("sprayer");
   node->declare_parameter("enabled", true);
   node->declare_parameter("nozzle_pressure_bar", 2.5);
