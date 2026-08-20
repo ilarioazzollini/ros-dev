@@ -155,17 +155,67 @@ Before 2981, this package shows that **loading** parameters at runtime already h
 
 ### Possible future improvements
 
-- report or even fix the rclpy bug
-- 2981 adds the SAVE half: `rclcpp::serialize_parameters(params_interface,
-base_interface) -> std::string`. The LOAD half already works today, but only
-as a *composition* the caller has to know to write themselves:
+The clearest way to see what's still missing is to notice that parameters move
+along **two independent axes**, and each axis has a **load** (file -> params) and
+a **save** (params -> file) direction:
+
+- **in-process** -- a node acting on *itself*, no ROS graph involved;
+- **over the graph** -- a client acting on a *remote* node through its parameter
+  services.
+
+Filling in that 2x2 matrix shows where the gaps are:
+
+| | Load (file -> params) | Save (params -> file) |
+| --- | --- | --- |
+| **In-process (self)** | works, but only as an un-named 3-line composition (see below) | `rclcpp::serialize_parameters()` -- **new in #2981** (returns a string; caller writes the file) |
+| **Over the graph (remote)** | `rclcpp::SyncParametersClient::load_parameters(yaml)` -- exists | **blocked** -- the read half (`list` + `get`) exists, but nothing serializes the result (see item 1); only `ros2 param dump` (the `rclpy` CLI) covers it end to end |
+
+Notice a deeper asymmetry hiding in that table. The **load** side is built from
+*data-oriented* primitives that anyone can compose:
+`parameter_map_from_yaml_file()` (file -> `ParameterMap`), `parameters_from_map()`
+(`ParameterMap` -> `vector<Parameter>`), then `set_parameters()`. The **save**
+side has a single entry point, `serialize_parameters()`, and it is
+*interface-oriented*: it takes a **live local node's own interfaces**, not plain
+parameter data. There is no `serialize(ParameterMap)` / `serialize(vector<Parameter>)`,
+i.e. no inverse of `parameter_map_from_yaml_file()`. That is why the in-process
+load is merely *un-named* (you can write it yourself), but the over-the-graph
+save is *blocked* (you can't).
+
+From that, the concrete follow-ups (all *net-new* on top of what #2981 lands):
+
+1. **A data-oriented serialize primitive (the keystone).** Add
+   `serialize(const ParameterMap &)` (and/or `serialize(const std::vector<Parameter> &)`)
+   -> YAML string, the inverse of `parameter_map_from_yaml_file()` /
+   `parameters_from_map()`. This lets you serialize parameters obtained from
+   *anywhere*, not just a live local node, and `serialize_parameters()` itself
+   could be reimplemented on top of it. (Careful: `rclcpp::to_string(std::vector<Parameter>)`
+   exists but is the hand-rolled, **not** YAML-safe path -- exactly the trap this
+   feature replaces.)
+
+2. **Client-side remote save.** `SyncParametersClient::load_parameters(yaml)`
+   exists; its mirror `save_parameters(yaml)` does not. The *read* half already
+   works today -- `list_parameters({}, 0)` then `get_parameters(names)` fetches a
+   remote node's parameters over the graph -- but the result can't be serialized
+   until item 1 lands. With it, remote save becomes a clean composition
+   (list + get + serialize + write), the `rclcpp` equivalent of `ros2 param dump`.
+
+3. **In-process save-to-file convenience.** `serialize_parameters()` returns a
+   string by design (the caller does its own file I/O). A thin
+   `save_parameters_to_file(path, params_if, base_if)` on top would mirror
+   `parameter_map_from_yaml_file(path)` on the load side. Nearly free, since
+   `rcl_save_yaml_file()` already exists at the `rcl` layer.
+
+4. **Name the in-process load.** The same-process load works today only as a
+   composition the caller has to know to write themselves:
     ```cpp
     auto map = rclcpp::parameter_map_from_yaml_file(
-    yaml_filename, base_interface->get_fully_qualified_name());
+      yaml_filename, base_interface->get_fully_qualified_name());
     auto params = rclcpp::parameters_from_map(map);
     auto results = params_interface->set_parameters(params);
     ```
-    The idea: give the same-process case its own named free function too, so it's
-    discoverable and symmetric with `serialize_parameters()`, rather than requiring
-    users to already know the 3-line composition exists.
-- Same idea for `rclcpp::SyncParametersClient::load_parameters(yaml_filename)`. Is there a `rclcpp::SyncParametersClient::save_parameters(yaml_filename)` already? If not, would it be useful to add it?
+   Giving the same-process case its own named free function would make it
+   discoverable and symmetric with `serialize_parameters()`.
+
+5. **Report (or fix) the `rclpy` `ros2 param load` bug.** Note this is a separate
+   `rclpy`/`ros2cli` effort, not part of this feature; the `rclcpp` load path
+   above does not have the bug.
