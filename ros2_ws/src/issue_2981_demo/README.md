@@ -96,15 +96,15 @@ and check that they were set successfully by running `ros2 param dump /sprayer` 
 
 ## `switch_config_demo`: still loading, but from C++ code
 
-With this demo, we show that `ros2 param load` isn't just a CLI trick: the underlying capability is a plain `rclcpp` API, `rclcpp::SyncParametersClient::load_parameters(yaml_filename)` (`parameter_client.hpp`) -- its own doc comment says *"This function behaves like command-line tool `ros2 param load` would."* See [`src/switch_config_demo.cpp`](src/switch_config_demo.cpp) for details.
+With this demo, we show that runtime parameter loading isn't just a CLI feature. The `ros2 param load` command is a Python (`rclpy`) tool from `ros2cli`; the same capability is also exposed directly in C++ as `rclcpp::SyncParametersClient::load_parameters(yaml_filename)` (`parameter_client.hpp`) -- a *separate* client whose own doc comment says *"This function behaves like command-line tool `ros2 param load` would."* The two are independent implementations that both drive the node's parameter services over the ROS graph; neither wraps the other. See [`src/switch_config_demo.cpp`](src/switch_config_demo.cpp) for details.
 
 With `param_holder_node` running (see above), we can call it directly, no shell CLI involved, by opening a terminal and running:
 
 ```bash
-ros2 run issue_2981_demo switch_config_demo /sprayer /root/ros-dev/ros2_ws/src/issue_2981_demo/params/sprayer_params_gentle.yaml
+ros2 run issue_2981_demo switch_config_demo /sprayer /root/ros-dev/ros2_ws/src/issue_2981_demo/params/sprayer_params.yaml
 ```
 
-This reproduces the exact same live switch as the `ros2 param load` example above, purely from a C++ program. Under the hood it's the same two pieces already covered in this repo: parse the YAML with `rclcpp::parameter_map_from_yaml_file()` (see `load_demo` above), then `set_parameters()` against the target node over the ROS graph.
+This loads the *very same* `sprayer_params.yaml` as the `ros2 param load` example above, purely from a C++ program -- but with one telling difference: here `spray_pattern` is set successfully, to the string `no`, whereas the `rclpy` CLI choked on it. We can confirm it took by running `ros2 param get /sprayer spray_pattern` (or `ros2 param dump /sprayer`), which now shows `spray_pattern` as the string `no`. Because this path parses the file through `rclcpp::parameter_map_from_yaml_file()` (see `load_demo` above) rather than re-inferring types in Python, it keeps `"no"` a string. Under the hood it's the same two pieces already covered in this repo: parse the YAML, then `set_parameters()` against the target node over the ROS graph.
 
 ## `self_reload_demo`: same-process self-reload from C++ code
 
